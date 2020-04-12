@@ -1,0 +1,12 @@
+[Unit]
+Description=Display text on Tuner
+Documentation=NA
+
+[Service]
+ExecStart=/home/volumio/RPI-Volumio/LCDv2/runDisplay.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
+
