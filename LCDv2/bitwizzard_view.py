@@ -18,37 +18,43 @@ class LCDDisplay(object):
         pass
     def clearDisplay(self):
         pass
-    def forceRefresh(self):
-        pass
 
 class BitwizzardDisplay(LCDDisplay):
 
     def __init__(self):
         super(BitwizzardDisplay, self).__init__()
         self.lcdAddress = 00
-        self.lcdBus = smbus.SMBus(1)
-        bus = self.lcdBus
-        lastByte = 1
-        bytesRead = 0 
+        self.clearDisplay()
+
+    def clearDisplay(self):
+        bus = smbus.SMBus(1)
         bus.write_byte_data(self.lcdAddress,0x10,1)
+        # Backlight
+        bus.write_byte_data(self.lcdAddress,0x13,0xfe)
+        # Contrast
+        bus.write_byte_data(self.lcdAddress,0x12,0x00)
         bus.close()
 
     def showText(self):
-        self.lcdBus = smbus.SMBus(1)
-        bus = self.lcdBus
+        bus = smbus.SMBus(1)
         # Set cursor
         bus.write_byte_data(self.lcdAddress,0x11,0)
         # Write data
         def writeString(s):
-            chars = 80*[ord(' ')]
+            maxLength = 80
+            chars = maxLength*[ord(' ')]
             i = 0
             for c in s:
                 chars[i] = ord(c)
+                if c == '\n':
+                    i = (int(i/10)+1)*10 - 1
+                    if i > maxLength:
+                        break
                 i += 1
             return chars
 
         charText = writeString(self.displayedText)
-        l1 = writeString("*******************.")[:20] + charText[20:40]
+        l1 = writeString("")[:20] + charText[20:40]
         l2 = charText[:20] + charText[40:]
         bus.write_i2c_block_data(self.lcdAddress, 0x00, l1[:20])
         time.sleep(0.015)
