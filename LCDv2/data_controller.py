@@ -10,6 +10,9 @@ class Sheets(object):
     def getText(self):
         pass 
 
+    def canBeShown(self):
+        return True
+
 class AudioSettings(Sheets):
     def __init__(self, dataSource):
         self.dataSource = dataSource
@@ -31,7 +34,12 @@ class AudioSettings(Sheets):
 
     def getText(self):
         s = self.dataSource.getData()
-        return str(s['samplerate']) + ' @ ' + str(s['bitdepth']) + '\n' + self._getVolBar()
+        status = 'Not playing'
+        if s['status'] == 'play':
+            status = 'Playing'
+        return "DAC:" + str(s['samplerate']) + '@' + str(s['bitdepth']) \
+                + '\n' + "Vol: " + self._getVolBar() + '\n' +  status
+
 
 class NowPlaying(Sheets):
     def __init__(self, dataSource):
@@ -41,12 +49,16 @@ class NowPlaying(Sheets):
         s = self.dataSource.getData()
         return s['artist'] + " - " + s['title']
 
+    def canBeShown(self):
+        s = self.dataSource.getData()
+        return s['status'] == 'play'
+
 class DateMisc(Sheets):
     def __init__(self):
         pass
 
     def getText(self):
-        return strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        return strftime("%Y-%m-%d %H:%M", gmtime())
 
 class SheetController(object):
     def __init__(self, display):
@@ -59,8 +71,9 @@ class SheetController(object):
 
     def runIt(self):
         for sheet in self.sheets:
-            bw.setText(sheet.getText())
-            time.sleep(self.delay)
+            if sheet.canBeShown():
+                bw.setText(sheet.getText())
+                time.sleep(self.delay)
 
 if __name__ == "__main__":
     # execute only if run as a script
