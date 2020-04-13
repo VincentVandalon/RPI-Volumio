@@ -2,6 +2,8 @@ import data_model
 import bitwizzard_view
 import time
 from time import gmtime, strftime
+import uptime
+import socket
 
 class Sheets(object):
     def __init__(self):
@@ -71,7 +73,15 @@ class DateMisc(Sheets):
         pass
 
     def getText(self):
-        return strftime("%Y-%m-%d %H:%M", time.localtime())
+        def get_ip_address():
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            return s.getsockname()[0]
+        s = strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        s += '\n Uptime: ' + time.strftime('%dd %Hh',time.gmtime(uptime.uptime()))
+        s += ' IP    : ' + get_ip_address()
+        print(s)
+        return s
 
 class SheetController(object):
     def __init__(self, display):

@@ -40,7 +40,7 @@ class BitwizzardDisplay(LCDDisplay):
         # Backlight
         bus.write_byte_data(self.lcdAddress,0x13,0xfe)
         # Contrast
-        bus.write_byte_data(self.lcdAddress,0x12,0x00)
+        bus.write_byte_data(self.lcdAddress,0x12,0x10)
         time.sleep(0.1)
         bus.close()
 
@@ -58,10 +58,11 @@ class BitwizzardDisplay(LCDDisplay):
 
                 if c == '\n':
                     i = (int(i/20)+1)*20 - 1
-                    if i > maxLength:
-                        break
                 else:
-                    chars[i] = ord(c)
+                    if i >= maxLength:
+                        return chars
+                    else:
+                        chars[i] = ord(c)
 
                 i += 1
             return chars
@@ -91,7 +92,7 @@ if __name__ == "__main__":
         # execute only if run as a script
             bw = BitwizzardDisplay()
             i = 0
-            while i < 10:
+            while i < 4:
                 if i%2 ==0:
                     bw.setText("This is a test \n for the display with a longer string")
                 else:
