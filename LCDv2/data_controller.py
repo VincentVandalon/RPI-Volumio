@@ -37,8 +37,15 @@ class AudioSettings(Sheets):
         status = 'Not playing'
         if s['status'] == 'play':
             status = 'Playing'
-        return "DAC:" + str(s['samplerate']) + '@' + str(s['bitdepth']) \
-                + '\n' + "Vol: " + self._getVolBar() + '\n' +  status
+        dacState = ''
+        if len(s['samplerate'])>2:
+            dacState +=str(s['samplerate']) + '@' + str(s['bitdepth'])
+        elif 'bitrate' in s.keys():
+            dacState += str(s['bitrate'])
+        else:
+            dacState += '-'
+
+        return "DAC:" +  dacState + '\n' + "Vol: " + self._getVolBar() + '\n' +  status
 
 
 class NowPlaying(Sheets):
@@ -70,10 +77,15 @@ class SheetController(object):
         self.sheets.append(sheet)
 
     def runIt(self):
+        i = 0
+        refreshInterval = 10
         for sheet in self.sheets:
             if sheet.canBeShown():
                 bw.setText(sheet.getText())
                 time.sleep(self.delay)
+                i +=1
+            if i > refreshInterval:
+                bw.clearDisplay()
 
 if __name__ == "__main__":
     # execute only if run as a script
