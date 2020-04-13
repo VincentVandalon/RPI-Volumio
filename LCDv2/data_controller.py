@@ -54,7 +54,13 @@ class NowPlaying(Sheets):
 
     def getText(self):
         s = self.dataSource.getData()
-        return s['artist'] + " - " + s['title']
+        processBar = ''
+        if s['duration'] > 0:
+            curPos = time.gmtime(s['seek']/1000.)
+            trackDuration = time.gmtime(s['duration'])
+            print(trackDuration)
+            processBar = '['+time.strftime('%M:%S',curPos) + '/' + time.strftime('%M:%S',trackDuration) + '] '
+        return processBar + s['artist'] + " - " + s['title']
 
     def canBeShown(self):
         s = self.dataSource.getData()
@@ -65,7 +71,7 @@ class DateMisc(Sheets):
         pass
 
     def getText(self):
-        return strftime("%Y-%m-%d %H:%M", gmtime())
+        return strftime("%Y-%m-%d %H:%M", time.localtime())
 
 class SheetController(object):
     def __init__(self, display):
