@@ -10,7 +10,7 @@ class KY040:
     CLOCKWISE = 0
     ANTICLOCKWISE = 1
     
-    def __init__(self, clockPin, dataPin, switchPin, redLED,
+    def __init__(self, clockPin, dataPin, switchPin,
                  rotaryCallback, switchCallback):
         #persist values
         self.clockPin = clockPin
@@ -18,47 +18,67 @@ class KY040:
         self.switchPin = switchPin
         self.rotaryCallback = rotaryCallback
         self.switchCallback = switchCallback
+        self.commandQueue = []
 
         #setup pins
-        GPIO.setup(clockPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(dataPin, GPIO.IN)#, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(clockPin,  GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(dataPin,   GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(switchPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-        GPIO.setup(redLED, GPIO.OUT)
-	GPIO.output(redLED,GPIO.HIGH)
+        #GPIO.add_event_detect(clockPin, GPIO.RISING, bouncetime=10)
+        #GPIO.add_event_detect(dataPin, GPIO.RISING, bouncetime=10)
+        #GPIO.add_event_detect(switchPin, GPIO.RISING, bouncetime=10)
+        while False:
+            sleep(0.05)
+            if GPIO.event_detected(switchPin):
+                print('Trigger:'+str(switchPin))
+            if GPIO.event_detected(clockPin):
+                print('Trigger:'+str(clockPin) + 'other:' + str(GPIO.event_detected(dataPin)))
+                #print(GPIO.input(dataPin))
+            if GPIO.event_detected(dataPin):
+                print('Trigger:'+str(dataPin) + 'other:' + str(GPIO.event_detected(clockPin)))
 
     def start(self):
-        GPIO.add_event_detect(self.clockPin,
-                              GPIO.FALLING,
-                              callback=self._clockCallback,
-                              bouncetime=250)
         GPIO.add_event_detect(self.switchPin,
-                              GPIO.FALLING,
-                              callback=self._switchCallback,
-                              bouncetime=250)
-        #GPIO.add_event_detect(self.switchPin,
-                              #GPIO.FALLING,
-                              #callback=self._genericCallback,
-                              #bouncetime=300)
+                              GPIO.RISING,
+                              callback=self._genericCallback,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.clockPin,
+                              GPIO.RISING,
+                              callback=self._clockCallback,
+                              bouncetime=100)
+        GPIO.add_event_detect(self.dataPin,
+                              GPIO.RISING,
+                              callback=self._genericCallback,
+                              bouncetime=100)
 
     def stop(self):
         GPIO.remove_event_detect(self.clockPin)
         GPIO.remove_event_detect(self.switchPin)
+        GPIO.remove_event_detect(self.dataPin)
     
     def _genericCallback(self, pin):
-        print(str(pin) + " " + str(GPIO.input(pin)) )
+        #print(str(pin) + " " + str(GPIO.input(pin)) )
+        if pin == self.switchPin:
+            self._switchCallback(pin)
+        else:
+            self.commandQueue.append(pin)
+            print(self.commandQueue)
 
     def _clockCallback(self, pin):
-        if GPIO.input(self.clockPin) == 0:
-            data = GPIO.input(self.dataPin)
-            if data == 1:
-                self.rotaryCallback(self.ANTICLOCKWISE)
-            else:
-                self.rotaryCallback(self.CLOCKWISE)
+        self.commandQueue.append(pin)
+        #if GPIO.input(self.clockPin) == 0:
+        print(self.commandQueue)
+        data = (self.commandQueue[0] == self.dataPin)
+        self.commandQueue = []
+
+        if data == 1:
+            self.rotaryCallback(self.ANTICLOCKWISE)
+        else:
+            self.rotaryCallback(self.CLOCKWISE)
     
     def _switchCallback(self, pin):
-        if GPIO.input(self.switchPin) == 1:
-            self.switchCallback()
+        #if GPIO.input(self.switchPin) == 1:
+        self.switchCallback()
 
 #test
 if __name__ == "__main__":
@@ -66,10 +86,8 @@ if __name__ == "__main__":
     CLOCKPIN = 6
     DATAPIN = 13
     SWITCHPIN = 5
-    REDLED = 26
 
     def rotaryChange(direction):
-	GPIO.output(REDLED,not bool(GPIO.input(REDLED)))
         print "turned - " + str(direction)
 
     def switchPressed():
@@ -77,7 +95,7 @@ if __name__ == "__main__":
 
     GPIO.setmode(GPIO.BCM)
     
-    ky040 = KY040(CLOCKPIN, DATAPIN, SWITCHPIN, REDLED,
+    ky040 = KY040(CLOCKPIN, DATAPIN, SWITCHPIN,
                   rotaryChange, switchPressed)
 
     ky040.start()

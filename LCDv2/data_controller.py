@@ -1,6 +1,7 @@
 import data_model
 import bitwizzard_view
 import time
+import datetime
 from time import gmtime, strftime
 import uptime
 import socket
@@ -36,9 +37,13 @@ class AudioSettings(Sheets):
 
     def getText(self):
         s = self.dataSource.getData()
-        status = 'Not playing'
+        status = '[Volumio: '
         if s['status'] == 'play':
-            status = 'Playing'
+            status += 'Playing'
+        else:
+            status += 'Off'
+        status += ']'
+
         dacState = ''
         if len(s['samplerate'])>2:
             dacState +=str(s['samplerate']) + '@' + str(s['bitdepth'])
@@ -47,7 +52,7 @@ class AudioSettings(Sheets):
         else:
             dacState += '-'
 
-        return "DAC:" +  dacState + '\n' + "Vol: " + self._getVolBar() + '\n' +  status
+        return status + "\nDAC:" +  dacState + '\nVol: ' + self._getVolBar() + '\n' 
 
 
 class NowPlaying(Sheets):
@@ -60,7 +65,6 @@ class NowPlaying(Sheets):
         if s['duration'] > 0:
             curPos = time.gmtime(s['seek']/1000.)
             trackDuration = time.gmtime(s['duration'])
-            print(trackDuration)
             processBar = '['+time.strftime('%M:%S',curPos) + '/' + time.strftime('%M:%S',trackDuration) + '] '
         return processBar + s['artist'] + " - " + s['title']
 
@@ -77,9 +81,13 @@ class DateMisc(Sheets):
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             return s.getsockname()[0]
-        s = strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        s += '\n Uptime: ' + time.strftime('%dd %Hh',time.gmtime(uptime.uptime()))
-        s += ' IP    : ' + get_ip_address()
+
+        def formatTimeDelta(d):
+            return ':'.join(str(d).split(':')[:-1])
+
+        s = strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '\n'
+        s += 'Uptime: ' + formatTimeDelta(datetime.timedelta(seconds=uptime.uptime())) + '\n'
+        s += 'IP    : ' + str(get_ip_address()).split('.')[-1]
         print(s)
         return s
 
@@ -110,8 +118,8 @@ if __name__ == "__main__":
     bw = bitwizzard_view.BitwizzardDisplay()
     controller = SheetController(bw)
 
+    controller.addSheet(DateMisc())
     controller.addSheet(NowPlaying(dataSource))
     controller.addSheet(AudioSettings(dataSource))
-    controller.addSheet(DateMisc())
     while True:
         controller.runIt()
