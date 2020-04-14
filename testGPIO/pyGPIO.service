@@ -1,0 +1,12 @@
+[Unit]
+Description=Control buttons on Tuner
+Documentation=NA
+
+[Service]
+ExecStart=/home/volumio/RPI-Volumio/testGPIO/runGPIO.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
+

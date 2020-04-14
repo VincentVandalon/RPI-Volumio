@@ -38,7 +38,7 @@ class AudioSettings(Sheets):
     def getText(self):
         s = self.dataSource.getData()
         status = '[Volumio: '
-        if s['status'] == 'play':
+        if s['status'] in ['pause', 'play']:
             status += 'Playing'
         else:
             status += 'Off'
