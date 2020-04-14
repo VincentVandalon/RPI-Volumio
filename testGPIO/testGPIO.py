@@ -46,10 +46,10 @@ class KY040:
                               GPIO.RISING,
                               callback=self._clockCallback,
                               bouncetime=100)
-        GPIO.add_event_detect(self.dataPin,
-                              GPIO.RISING,
-                              callback=self._genericCallback,
-                              bouncetime=100)
+        #GPIO.add_event_detect(self.dataPin,
+        #                      GPIO.RISING,
+        #                      callback=self._genericCallback,
+        #                      bouncetime=100)
 
     def stop(self):
         GPIO.remove_event_detect(self.clockPin)
@@ -67,9 +67,9 @@ class KY040:
     def _clockCallback(self, pin):
         self.commandQueue.append(pin)
         #if GPIO.input(self.clockPin) == 0:
-        print(self.commandQueue)
         data = (self.commandQueue[0] == self.dataPin)
         self.commandQueue = []
+        data = GPIO.input(self.dataPin)
 
         if data == 1:
             self.rotaryCallback(self.ANTICLOCKWISE)
