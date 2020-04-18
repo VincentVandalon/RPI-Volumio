@@ -92,10 +92,11 @@ class DateMisc(Sheets):
         return s
 
 class SheetController(object):
-    def __init__(self, display):
+    def __init__(self, display, dataSource):
         self.sheets = []
         self.delay = 3
         self.display = display
+        self.dataSource = dataSource
 
     def addSheet(self, sheet):
         self.sheets.append(sheet)
@@ -104,19 +105,20 @@ class SheetController(object):
         i = 0
         refreshInterval = 10
         for sheet in self.sheets:
+            self.display.setBacklight(self.dataSource.isPlaying())
             if sheet.canBeShown():
-                bw.setText(sheet.getText())
+                self.display.setText(sheet.getText())
                 time.sleep(self.delay)
                 i +=1
             if i > refreshInterval:
-                bw.clearDisplay()
+                self.display.clearDisplay()
 
 if __name__ == "__main__":
     # execute only if run as a script
     dataSource = data_model.DataSource()
 
     bw = bitwizzard_view.BitwizzardDisplay()
-    controller = SheetController(bw)
+    controller = SheetController(bw, dataSource)
 
     controller.addSheet(DateMisc())
     controller.addSheet(NowPlaying(dataSource))

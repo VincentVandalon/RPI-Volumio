@@ -17,6 +17,15 @@ class LCDDisplay(object):
     def showText(self):
         pass
 
+    def setBacklight(self, status):
+        bus = smbus.SMBus(1)
+        # Backlight
+        if status:
+            bus.write_byte_data(self.lcdAddress,0x13,0xfe)
+        else:
+            bus.write_byte_data(self.lcdAddress,0x13,0x00)
+
+
     def clearDisplay(self):
         pass
 
