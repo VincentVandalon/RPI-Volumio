@@ -112,6 +112,7 @@ class SheetController(object):
                 i +=1
             if i > refreshInterval:
                 self.display.clearDisplay()
+                i = 0
 
 if __name__ == "__main__":
     # execute only if run as a script
